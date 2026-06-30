@@ -3,32 +3,42 @@ import urllib.parse
 import feedparser
 import requests
 from bs4 import BeautifulSoup
+import re
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
 SITE_URL = os.environ["SITE_URL"]
 
-RSS_FILE = 'site/feed_rss_created.xml'
+RSS_FILE = "site/feed_rss_created.xml"
 STATE_FILE = "posted.txt"
 
 
-def sanitize_html(html_content, site_url):
-    """Converts standard HTML into Telegram-supported HTML and extracts images."""
-    soup = BeautifulSoup(html_content, "html.parser")
+def sanitize_local_html(file_path, site_url):
+    """Reads the actual built HTML file instead of the RSS summary."""
+    with open(file_path, "r", encoding="utf-8") as f:
+        soup = BeautifulSoup(f.read(), "html.parser")
+
+    article = soup.find("article", class_="md-content__inner")
+    if not article:
+        return "", None
 
     img_url = None
-    img = soup.find("img")
+    img = article.find("img")
     if img:
         img_url = urllib.parse.urljoin(site_url, img.get("src"))
         img.decompose()
 
-    for br in soup.find_all("br"):
+    h1 = article.find("h1")
+    if h1:
+        h1.decompose()
+
+    for br in article.find_all("br"):
         br.replace_with("\n")
-    for p in soup.find_all("p"):
+    for p in article.find_all("p"):
         p.append("\n\n")
         p.unwrap()
 
-    for a in soup.find_all("a"):
+    for a in article.find_all("a"):
         if a.get("href"):
             a["href"] = urllib.parse.urljoin(site_url, a["href"])
 
@@ -46,11 +56,13 @@ def sanitize_html(html_content, site_url):
         "code",
         "pre",
     ]
-    for tag in soup.find_all(True):
+    for tag in article.find_all(True):
         if tag.name not in allowed_tags:
             tag.unwrap()
 
-    text = str(soup).strip()
+    text = str(article).strip()
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
     return text, img_url
 
 
@@ -76,12 +88,22 @@ def main():
 
         title = entry.title
 
-        if hasattr(entry, "content"):
-            html_content = entry.content[0].value
-        else:
-            html_content = entry.summary
+        parsed_link = urllib.parse.urlparse(link)
+        parsed_site = urllib.parse.urlparse(SITE_URL)
 
-        text, img_url = sanitize_html(html_content, SITE_URL)
+        relative_path = parsed_link.path
+        if relative_path.startswith(parsed_site.path):
+            relative_path = relative_path[len(parsed_site.path) :]
+
+        relative_path = relative_path.strip("/")
+
+        local_file_path = os.path.join("site", relative_path, "index.html")
+
+        if not os.path.exists(local_file_path):
+            print(f"Warning: Could not find local HTML file for {link}")
+            continue
+
+        text, img_url = sanitize_local_html(local_file_path, SITE_URL)
 
         message = f"<b>{title}</b>\n\n{text}\n<a href='{link}'>Read on Vault</a>"
 
