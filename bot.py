@@ -129,10 +129,12 @@ def main():
         parsed_link = urllib.parse.urlparse(link)
         parsed_site = urllib.parse.urlparse(SITE_URL)
 
-        relative_path = parsed_link.path
-        if relative_path.startswith(parsed_site.path):
-            relative_path = relative_path[len(parsed_site.path) :]
+        relative_path = urllib.parse.unquote(parsed_link.path)
+        site_path = urllib.parse.unquote(parsed_site.path)
 
+        if relative_path.startswith(site_path):
+            relative_path = relative_path[len(site_path):]
+            
         local_file_path = os.path.join("site", relative_path.strip("/"), "index.html")
 
         if not os.path.exists(local_file_path):
