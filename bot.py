@@ -36,20 +36,27 @@ def sanitize_local_html(file_path, site_url):
     for p in article.find_all("p"):
         p.append("\n\n")
         p.unwrap()
-        
-    for math_tag in article.find_all(class_='arithmatex'):
-        math_text = math_tag.get_text()
-        if math_tag.name == 'div':
-            new_tag = soup.new_tag('pre')
+
+    for math_tag in article.find_all(class_="arithmatex"):
+        math_text = math_tag.get_text().strip()
+
+        if math_text.startswith(r"\(") and math_text.endswith(r"\)"):
+            math_text = math_text[2:-2].strip()
+
+        elif math_text.startswith(r"\[") and math_text.endswith(r"\]"):
+            math_text = math_text[2:-2].strip()
+
+        if math_tag.name == "div":
+            new_tag = soup.new_tag("pre")
         else:
-            new_tag = soup.new_tag('code')
-            
+            new_tag = soup.new_tag("code")
+
         new_tag.string = math_text
         math_tag.replace_with(new_tag)
 
-    for a in article.find_all('a'):
-        if a.get('href'):
-            a['href'] = urllib.parse.urljoin(site_url, a['href'])
+    for a in article.find_all("a"):
+        if a.get("href"):
+            a["href"] = urllib.parse.urljoin(site_url, a["href"])
 
     allowed_tags = [
         "b",
@@ -143,8 +150,8 @@ def main():
         site_path = urllib.parse.unquote(parsed_site.path)
 
         if relative_path.startswith(site_path):
-            relative_path = relative_path[len(site_path):]
-            
+            relative_path = relative_path[len(site_path) :]
+
         local_file_path = os.path.join("site", relative_path.strip("/"), "index.html")
 
         if not os.path.exists(local_file_path):
