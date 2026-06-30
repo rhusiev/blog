@@ -14,7 +14,6 @@ STATE_FILE = "posted.txt"
 
 
 def sanitize_local_html(file_path, site_url):
-    """Reads the actual built HTML file instead of the RSS summary."""
     with open(file_path, "r", encoding="utf-8") as f:
         soup = BeautifulSoup(f.read(), "html.parser")
 
@@ -62,23 +61,62 @@ def sanitize_local_html(file_path, site_url):
 
     text = str(article).strip()
     text = re.sub(r"\n{3,}", "\n\n", text)
-
     return text, img_url
+
+
+def post_to_telegram(title, text, link, img_url):
+    message = f"<b>{title}</b>\n\n{text}\n<a href='{link}'>Read on Vault</a>"
+
+    if img_url and len(message) <= 1024:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+        payload = {
+            "chat_id": CHANNEL_ID,
+            "photo": img_url,
+            "caption": message,
+            "parse_mode": "HTML",
+        }
+        response = requests.post(url, data=payload)
+        if response.status_code == 200:
+            return True
+        print(
+            f"Photo post failed (Maybe image is inaccessible?). Telegram said: {response.text}"
+        )
+        print("Falling back to text-only message...")
+
+    elif img_url:
+        requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto",
+            data={"chat_id": CHANNEL_ID, "photo": img_url},
+        )
+
+    if len(message) > 4000:
+        message = message[:4000] + f"...\n\n<a href='{link}'>Read on Vault</a>"
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": CHANNEL_ID,
+        "text": message,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": False,
+    }
+    response = requests.post(url, data=payload)
+
+    if response.status_code != 200:
+        print(f"Text post failed! Telegram said: {response.text}")
+        return False
+    return True
 
 
 def main():
     if not os.path.exists(RSS_FILE):
-        print("RSS feed not found. Skipping bot execution.")
         return
 
     feed = feedparser.parse(RSS_FILE)
-
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "r") as f:
-            posted = set(f.read().splitlines())
-    else:
-        posted = set()
-
+    posted = (
+        set(open(STATE_FILE, "r").read().splitlines())
+        if os.path.exists(STATE_FILE)
+        else set()
+    )
     new_posts = []
 
     for entry in reversed(feed.entries):
@@ -95,9 +133,7 @@ def main():
         if relative_path.startswith(parsed_site.path):
             relative_path = relative_path[len(parsed_site.path) :]
 
-        relative_path = relative_path.strip("/")
-
-        local_file_path = os.path.join("site", relative_path, "index.html")
+        local_file_path = os.path.join("site", relative_path.strip("/"), "index.html")
 
         if not os.path.exists(local_file_path):
             print(f"Warning: Could not find local HTML file for {link}")
@@ -105,44 +141,9 @@ def main():
 
         text, img_url = sanitize_local_html(local_file_path, SITE_URL)
 
-        message = f"<b>{title}</b>\n\n{text}\n<a href='{link}'>Read on Vault</a>"
-
-        try:
-            if img_url and len(message) <= 1024:
-                url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
-                payload = {
-                    "chat_id": CHANNEL_ID,
-                    "photo": img_url,
-                    "caption": message,
-                    "parse_mode": "HTML",
-                }
-                r = requests.post(url, data=payload)
-            else:
-                if img_url:
-                    requests.post(
-                        f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto",
-                        data={"chat_id": CHANNEL_ID, "photo": img_url},
-                    )
-
-                if len(message) > 4000:
-                    message = (
-                        message[:4000] + f"...\n\n<a href='{link}'>Read on Vault</a>"
-                    )
-
-                url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                payload = {
-                    "chat_id": CHANNEL_ID,
-                    "text": message,
-                    "parse_mode": "HTML",
-                    "disable_web_page_preview": True,
-                }
-                r = requests.post(url, data=payload)
-
-            r.raise_for_status()
+        if post_to_telegram(title, text, link, img_url):
             new_posts.append(link)
             print(f"Successfully posted: {title}")
-        except Exception as e:
-            print(f"Failed to post {link}: {e}")
 
     if new_posts:
         with open(STATE_FILE, "a") as f:
