@@ -82,7 +82,7 @@ def sanitize_local_html(file_path, site_url):
 
 
 def post_to_telegram(title, text, link, img_url):
-    message = f"<b>{title}</b>\n\n{text}\n<a href='{link}'>Read on Vault</a>"
+    message = f"<b>{title}</b>\n\n{text}\n<a href='{link}'>Читати в блозі</a>"
 
     if img_url and len(message) <= 1024:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
@@ -107,7 +107,7 @@ def post_to_telegram(title, text, link, img_url):
         )
 
     if len(message) > 4000:
-        message = message[:4000] + f"...\n\n<a href='{link}'>Read on Vault</a>"
+        message = message[:4000] + f"...\n\n<a href='{link}'>Читати в блозі</a>"
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
