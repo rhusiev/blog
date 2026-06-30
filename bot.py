@@ -59,7 +59,7 @@ def sanitize_local_html(file_path, site_url):
         if tag.name not in allowed_tags:
             tag.unwrap()
 
-    text = str(article).strip()
+    text = article.decode_contents().strip()
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text, img_url
 
