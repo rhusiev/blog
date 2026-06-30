@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
 SITE_URL = os.environ["SITE_URL"]
-RSS_FILE = "site/feed_rss_created.xml"
+
+RSS_FILE = "site/blog/feed_rss_created.xml"
 STATE_FILE = "posted.txt"
 
 
@@ -20,6 +21,12 @@ def sanitize_html(html_content, site_url):
     if img:
         img_url = urllib.parse.urljoin(site_url, img.get("src"))
         img.decompose()
+
+    for br in soup.find_all("br"):
+        br.replace_with("\n")
+    for p in soup.find_all("p"):
+        p.append("\n\n")
+        p.unwrap()
 
     for a in soup.find_all("a"):
         if a.get("href"):
@@ -43,7 +50,8 @@ def sanitize_html(html_content, site_url):
         if tag.name not in allowed_tags:
             tag.unwrap()
 
-    return str(soup).strip(), img_url
+    text = str(soup).strip()
+    return text, img_url
 
 
 def main():
@@ -67,11 +75,15 @@ def main():
             continue
 
         title = entry.title
-        html_content = entry.summary
+
+        if hasattr(entry, "content"):
+            html_content = entry.content[0].value
+        else:
+            html_content = entry.summary
 
         text, img_url = sanitize_html(html_content, SITE_URL)
 
-        message = f"<b>{title}</b>\n\n{text}\n\n<a href='{link}'>Read on Vault</a>"
+        message = f"<b>{title}</b>\n\n{text}\n<a href='{link}'>Read on Vault</a>"
 
         try:
             if img_url and len(message) <= 1024:

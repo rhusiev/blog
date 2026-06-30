@@ -1,5 +1,4 @@
 mkdocs-material
-mkdocs-rss-plugin
 feedparser
 beautifulsoup4
 requests
