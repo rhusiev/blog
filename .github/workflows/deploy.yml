@@ -1,0 +1,46 @@
+name: Deploy Vault & Post to Telegram
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-deploy-post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+          
+      - name: Build MkDocs (Generates RSS)
+        run: mkdocs build
+        
+      - name: Post new articles to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          SITE_URL: "https://rhusiev.github.io/blog/"
+        run: python bot.py
+        
+      - name: Save posted state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          touch posted.txt
+          git add posted.txt
+          git commit -m "chore: update posted telegram state [skip ci]" || echo "No new posts"
+          git push
+          
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force
