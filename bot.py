@@ -8,7 +8,7 @@ BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
 SITE_URL = os.environ["SITE_URL"]
 
-RSS_FILE = "site/blog/feed_rss_created.xml"
+RSS_FILE = 'site/feed_rss_created.xml'
 STATE_FILE = "posted.txt"
 
 
