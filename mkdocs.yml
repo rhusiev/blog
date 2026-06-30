@@ -11,3 +11,11 @@ plugins:
       match_path: "blog/posts/.*\\.md"
       date_from_meta:
         as_creation: date
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js

@@ -36,10 +36,20 @@ def sanitize_local_html(file_path, site_url):
     for p in article.find_all("p"):
         p.append("\n\n")
         p.unwrap()
+        
+    for math_tag in article.find_all(class_='arithmatex'):
+        math_text = math_tag.get_text()
+        if math_tag.name == 'div':
+            new_tag = soup.new_tag('pre')
+        else:
+            new_tag = soup.new_tag('code')
+            
+        new_tag.string = math_text
+        math_tag.replace_with(new_tag)
 
-    for a in article.find_all("a"):
-        if a.get("href"):
-            a["href"] = urllib.parse.urljoin(site_url, a["href"])
+    for a in article.find_all('a'):
+        if a.get('href'):
+            a['href'] = urllib.parse.urljoin(site_url, a['href'])
 
     allowed_tags = [
         "b",
