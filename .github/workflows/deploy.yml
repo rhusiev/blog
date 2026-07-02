@@ -32,7 +32,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          SITE_URL: "https://rhusiev.github.io/blog/"
+          SITE_URL: "https://blog.r1a.nl/"
         run: python bot.py
         
       - name: Save posted state
