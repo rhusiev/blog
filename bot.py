@@ -11,7 +11,7 @@ SITE_URL = os.environ["SITE_URL"]
 
 RSS_FILE = "site/feed_rss_created.xml"
 STATE_FILE = "posted.txt"
-MAX_LENGTH = 6500
+MAX_LENGTH = 4076
 
 
 def sanitize_local_html(file_path, site_url):
