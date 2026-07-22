@@ -2,22 +2,26 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://blog.r1a.nl/blog/</loc>
-         <lastmod>2026-07-11</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://blog.r1a.nl/blog/2026/07/02/effective-flick/</loc>
-         <lastmod>2026-07-11</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://blog.r1a.nl/blog/2026/07/10/delegated-authority/</loc>
-         <lastmod>2026-07-11</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://blog.r1a.nl/blog/2026/07/11/rational-illogicality/</loc>
-         <lastmod>2026-07-11</lastmod>
+         <lastmod>2026-07-22</lastmod>
+    </url>
+    <url>
+         <loc>https://blog.r1a.nl/blog/2026/07/11/duality/</loc>
+         <lastmod>2026-07-22</lastmod>
     </url>
     <url>
          <loc>https://blog.r1a.nl/blog/archive/2026/</loc>
-         <lastmod>2026-07-11</lastmod>
+         <lastmod>2026-07-22</lastmod>
     </url>
 </urlset>
