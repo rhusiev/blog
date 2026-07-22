@@ -11,7 +11,7 @@ SITE_URL = os.environ["SITE_URL"]
 
 RSS_FILE = "site/feed_rss_created.xml"
 STATE_FILE = "posted.txt"
-MAX_LENGTH = 4076
+MAX_LENGTH = 4024
 
 
 def sanitize_local_html(file_path, site_url):
@@ -83,7 +83,7 @@ def sanitize_local_html(file_path, site_url):
 
 
 def post_to_telegram(title, text, link, img_url):
-    message = f"<b>{title}</b>\n\n{text}\n<a href='{link}'>Читати в блозі</a>"
+    message = f"<b>{title}</b>\n\n{text}"
 
     if img_url and len(message) <= 1024:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
@@ -108,7 +108,9 @@ def post_to_telegram(title, text, link, img_url):
         )
 
     if len(message) > MAX_LENGTH:
-        message = message[:MAX_LENGTH] + f"...\n\n<a href='{link}'>Читати в блозі</a>"
+        message = message[:MAX_LENGTH] + f"...\n\nНа жаль, телеграм обмежує довжину повідомлень\n<a href='{link}'>Читати повністю в блозі</a>"
+    else:
+        message += "\n\n<a href='{link}'>Читати в блозі</a>"
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
