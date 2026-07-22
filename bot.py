@@ -110,7 +110,7 @@ def post_to_telegram(title, text, link, img_url):
     if len(message) > MAX_LENGTH:
         message = message[:MAX_LENGTH] + f"...\n\nНа жаль, телеграм обмежує довжину повідомлень\n<a href='{link}'>Читати повністю в блозі</a>"
     else:
-        message += "\n\n<a href='{link}'>Читати в блозі</a>"
+        message += f"\n\n<a href='{link}'>Читати в блозі</a>"
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
